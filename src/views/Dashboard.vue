@@ -15,7 +15,7 @@
       v-if="!savedscore.length"
     >
       <p>Oops.. Blank Test</p>
-      <p>You haven’t taken any test.Tab the button below to start test now</p>
+      <p>You haven’t taken any test.Tab the button below to start test now.</p>
     </div>
 
     <div
@@ -64,7 +64,7 @@
       @click="leadersboard"
       class="text-white text-sm sm:w-48 w-full p-1.5 bg-primary cursor-pointer rounded-lg"
     >
-      Leaders Board
+      Leader's Board
     </button>
   </div>
 </template>
