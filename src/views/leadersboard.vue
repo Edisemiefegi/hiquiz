@@ -16,7 +16,7 @@
         v-for="(item, i) in results"
         :key="i"
       >
-        <span class="">{{ item.user && item.user.username }}</span>
+        <span class="">{{ item.username }}</span>
 
         <span class="text-primary-light">{{ item.subject }}</span>
 
@@ -34,30 +34,21 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import navbar from "../components/navbar.vue";
+import { useQuizStore } from "../../stores/store.js";
 
 const router = useRouter();
-const results = ref("");
+const store = useQuizStore();
+
 const Homepage = () => {
-  router.push({ name: "dashboard" });
+  router.push({ name: "Dashboard" });
 };
 
+const results = computed(() => store.getallScores);
+
 onMounted(() => {
-  const leaders = localStorage.getItem("results");
-  results.value = leaders ? JSON.parse(leaders) : [];
-
-  let math = results.value.filter((el) => el.subject == "mathematics");
-  let eng = results.value.filter((el) => el.subject == "english");
-
-  math = math.sort((a, b) => b.score - a.score).slice(0, 5);
-  eng = eng.sort((a, b) => b.score - a.score).slice(0, 5);
-
-  results.value = [...math, ...eng];
-
-  results.value = results.value.sort((a, b) =>
-    a.subject.localeCompare(b.subject)
-  );
+  store.leaders();
 });
 </script>

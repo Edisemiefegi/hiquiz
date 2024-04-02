@@ -20,7 +20,7 @@
 
     <div
       v-else
-      class="flex flex-col w-80 gap-3 border-2 rounded-lg border-primary-light p-4"
+      class="flex flex-col w-full gap-3 border-2 rounded-lg border-primary-light p-4"
     >
       <p class="text-primary font-medium">Completed Quizzes</p>
       <div
@@ -37,7 +37,7 @@
     <div class="flex flex-col gap-3 border-2 border-primary p-4">
       <p class="text-primary font-medium">Available Quizzes</p>
       <div
-        class="flex flex-col sm:flex-row sm:items-center justify-between px-3 py-2 bg-primary-light"
+        class="flex flex-col sm:flex-row sm:items-center justify-between px-3 py-2 gap-2 bg-primary-light"
       >
         <p class="text-primary font-medium">Mathematics</p>
         <button
@@ -70,34 +70,25 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from "vue";
+import { onMounted, ref, computed } from "vue";
 import { useRouter } from "vue-router";
-import Box from "../components/box.vue";
+import { useQuizStore } from "../../stores/store.js";
 import navbar from "../components/navbar.vue";
+import { onAuthStateChanged, auth } from "../firebase.js";
 
 const router = useRouter();
+const store = useQuizStore();
 
-const user = ref(null);
-
-const savedscore = ref([]);
+const savedscore = computed(() => store.getScores || []);
+const loginuser = computed(() => store.getLoggedInUser);
 
 const takeQuiz = (arg) => {
   router.push({ name: "Questions", query: { subject: arg } });
 };
 
-function logoutFN() {
-  localStorage.removeItem("loginUser");
-  router.push({ name: "auth" });
-}
-
-const getsavedscore = () => {
-  const localscore = localStorage.getItem("results");
-  let results = localscore ? JSON.parse(localscore) : [];
-
-  if (results) {
-    results = results.filter((el) => el.email == user.value.email);
-    savedscore.value = results;
-  }
+const logoutFN = async () => {
+  await store.logout(loginuser.value);
+  router.push({ name: "Auth" });
 };
 
 const leadersboard = () => {
@@ -107,13 +98,11 @@ const leadersboard = () => {
 };
 
 onMounted(() => {
-  const loginuser = localStorage.getItem("loginUser");
-
-  if (!loginuser) {
-    router.push({ name: "auth" });
-  } else {
-    user.value = JSON.parse(loginuser);
-    getsavedscore();
-  }
+  store.setScore();
+  onAuthStateChanged(auth, (user) => {
+    if (!user) {
+      logoutFN();
+    }
+  });
 });
 </script>

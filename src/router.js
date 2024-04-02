@@ -1,40 +1,32 @@
-import { createRouter, createWebHistory } from 'vue-router';
+import { createRouter, createWebHistory } from "vue-router";
 
 // Import your Vue components that you want to use as pages
-import Auth from './views/Auth.vue'
-import Dashboard from './views/Dashboard.vue'
-import Questions from './views/Questions.vue'
-import leadersboard from './views/leadersboard.vue'
-
-
-
+import Auth from "./views/Auth.vue";
+import Dashboard from "./views/Dashboard.vue";
+import Questions from "./views/Questions.vue";
+import leadersboard from "./views/leadersboard.vue";
 
 const routes = [
   {
-    path: '/',
+    path: "/",
     component: Auth,
-    name: 'auth'
+    name: "Auth",
   },
   {
-    path: '/dashboard',
+    path: "/dashboard",
     component: Dashboard,
-    name: 'dashboard'
+    name: "Dashboard",
   },
   {
-    path: '/questions',
+    path: "/questions",
     component: Questions,
-    name: 'Questions'
+    name: "Questions",
   },
   {
-    path: '/leaders',
+    path: "/leaders",
     component: leadersboard,
-    name: 'leadersboard'
+    name: "leadersboard",
   },
-
-
-
-
-
 ];
 
 const router = createRouter({

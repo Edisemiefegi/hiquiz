@@ -58,10 +58,7 @@ const props = defineProps({
   },
 });
 
-console.log(props.score);
-console.log(props.correctans, props.wrongans);
-
 const GoHomepage = () => {
-  router.push({ name: "dashboard" });
+  router.push({ name: "Dashboard" });
 };
 </script>

@@ -15,16 +15,16 @@
 </template>
 
 <script setup>
-import { computed, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
+import { useQuizStore } from "../../stores/store.js";
 const router = useRouter();
+
+const store = useQuizStore();
 
 const props = defineProps({
   dark: Boolean,
 });
 
-const user = computed(() => {
-  const loginuser = localStorage.getItem("loginUser");
-  return loginuser ? JSON.parse(loginuser) : null;
-});
+const user = computed(() => store.getLoggedInUser);
 </script>

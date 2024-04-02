@@ -14,6 +14,7 @@
         type="text"
         inputmode="text"
         placeholder="Username"
+        :disabled="loading"
         class="p-2 w-full border border-primary rounded-lg text-xs text-primary-light placeholder:text-primary-light outline-primary"
       />
     </div>
@@ -25,6 +26,7 @@
         type="email"
         inputmode="email"
         placeholder="Email"
+        :disabled="loading"
         class="p-2 w-full border border-primary rounded-lg text-xs text-primary-light placeholder:text-primary-light outline-primary"
       />
     </div>
@@ -34,14 +36,18 @@
         v-model="data.password"
         type="password"
         placeholder="Password"
+        :disabled="loading"
         class="p-2 w-full border border-primary rounded-lg text-xs text-primary-light placeholder:text-primary-light outline-primary"
       />
     </div>
     <button
-      class="text-white text-sm w-full p-1.5 bg-primary cursor-pointer rounded-lg"
+      :class="loading ? 'cursor-none' : 'cursor-pointer'"
+      class="text-white text-sm w-full p-1.5 bg-primary rounded-lg"
     >
-      <span v-if="!showSignupForm"> Login </span>
-      <span v-else>Sign Up</span>
+      <span v-if="!showSignupForm">
+        {{ loading ? "Loading..." : "Login" }}
+      </span>
+      <span v-else> {{ loading ? "Loading..." : "Signup" }}</span>
     </button>
     <button type="button" class="text-xs text-primary text-center">
       <span v-if="showSignupForm == false" @click="emit('toggle', true)"
@@ -55,10 +61,12 @@
 <script setup>
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
+import { useQuizStore } from "../../stores/store.js";
 
-const users = ref([]);
+const store = useQuizStore();
 
 const router = useRouter();
+const loading = ref(false);
 
 const props = defineProps({
   showSignupForm: Boolean,
@@ -82,46 +90,44 @@ const handlesubmit = () => {
   }
 };
 
-const setlocalstorage = () => {
-  const userdata = localStorage.getItem("users");
-  users.value = userdata ? JSON.parse(userdata) : [];
-};
-onMounted(() => {
-  setlocalstorage();
-});
-
-const signupfunc = () => {
-  if (checkEmail()) {
+const signupfunc = async () => {
+  try {
+    loading.value = false;
     const payload = { ...data.value };
-    users.value.push(payload);
-    localStorage.setItem("users", JSON.stringify(users.value));
-    localStorage.setItem("loginUser", JSON.stringify(payload));
-    console.log(data.value);
+    await store.signup(payload);
+
+    router.push({ name: "Dashboard" });
+
     clearData();
-    router.push({ name: "dashboard" });
+  } catch (error) {
+    const msg = error.message.split(":")[1];
+    alert(msg);
+  } finally {
+    loading.value = false;
   }
-  console.log("signup");
+};
+
+const loginfunc = async () => {
+  try {
+    loading.value = true;
+    const payload = { ...data.value };
+    await store.login(payload);
+
+    router.push({ name: "Dashboard" });
+
+    clearData();
+  } catch (error) {
+    const msg = error.message.split(" ")[2];
+    alert(msg);
+  } finally {
+    loading.value = false;
+  }
 };
 
 const clearData = () => {
-  (data.value.username = ""),
-    (data.value.email = ""),
-    (data.value.password = "");
-};
-
-const checkEmail = () => {
-  let result = true;
-
-  users.value.find((e) => {
-    if (e.email.trim().toLowerCase() == data.value.email.trim().toLowerCase()) {
-      alert("email already exist");
-      result = false;
-    } else {
-      result = true;
-    }
-  });
-
-  return result;
+  data.value.username = "";
+  data.value.email = "";
+  data.value.password = "";
 };
 
 const validity = () => {
@@ -137,27 +143,5 @@ const validity = () => {
   } else {
     return true;
   }
-};
-
-const loginfunc = () => {
-  // console.log(users.value);
-  const logginuser = users.value.find((e) => {
-    if (e.email.trim().toLowerCase() == data.value.email.trim().toLowerCase()) {
-      return e;
-    }
-  });
-
-  if (logginuser) {
-    if (data.value.password.trim() !== logginuser.password.trim()) {
-      alert("incorrect password");
-    } else {
-      localStorage.setItem("loginUser", JSON.stringify(logginuser));
-      router.push({ name: "dashboard" });
-    }
-  } else {
-    alert("user does not exist");
-  }
-
-  clearData();
 };
 </script>

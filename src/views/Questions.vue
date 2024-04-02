@@ -13,7 +13,7 @@
 
       <div v-if="questions.length" class="text-white flex flex-col gap-3">
         <p class="text-sm capitalize">
-          {{ subject }} |
+          {{ data.subject }} |
           <span class="text-primary-light">
             question {{ currentquest + 1 }}/ {{ questions.length }}</span
           >
@@ -133,33 +133,35 @@
 
   <Scoreboard
     v-else
-    :score="score"
-    :correctans="correctans"
-    :wrongans="wrongans"
-    :subject="subject"
+    :score="data.score"
+    :correctans="data.correctans"
+    :wrongans="data.wrongans"
+    :subject="data.subject"
   />
 </template>
 
 <script setup>
 import { onMounted, ref, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import { useQuizStore } from "../../stores/store.js";
 import navbar from "../components/navbar.vue";
 import Scoreboard from "../components/Scoreboard.vue";
 
 const router = useRouter();
 const route = useRoute();
+const store = useQuizStore();
 
 const showScorePage = ref(false);
-const score = ref(0);
-const correctans = ref(0);
-const wrongans = ref(0);
-const subject = ref("");
+
+const data = ref({
+  score: 0,
+  correctans: 0,
+  wrongans: 0,
+  subject: "",
+});
 const currentquest = ref(0);
 
-const loginuser = computed(() => {
-  const user = localStorage.getItem("loginUser");
-  return user ? JSON.parse(user) : null;
-});
+const loginuser = computed(() => store.getLoggedInUser);
 
 const questions = ref([
   {
@@ -220,7 +222,7 @@ const questions = ref([
   {
     question: "which of the following is even",
     Option: {
-      A: 9,
+      A: 2,
       B: 3,
       C: 1,
       D: 7,
@@ -436,17 +438,17 @@ const questions = ref([
 ]);
 
 onMounted(() => {
-  subject.value = route.query.subject;
+  data.value.subject = route.query.subject;
 
-  if (subject.value) {
+  if (data.value.subject) {
     questions.value = questions.value.filter(
-      (ques) => ques.subject.toLowerCase() == subject.value.toLowerCase()
+      (ques) => ques.subject.toLowerCase() == data.value.subject.toLowerCase()
     );
   }
 });
 
 const quitQuiz = () => {
-  router.push({ name: "dashboard" });
+  router.push({ name: "Dashboard" });
 };
 
 const nextfunc = () => {
@@ -472,50 +474,21 @@ const ScoreBoard = () => {
 
   questions.value.forEach((ques) => {
     if (ques.selected == ques.ans) {
-      correctans.value++;
-      score.value = score.value + 2;
+      data.value.correctans++;
+      data.value.score = data.value.score + 2;
     } else {
-      wrongans.value++;
+      data.value.wrongans++;
     }
   });
 
   savedscore();
 };
 
-const savedscore = () => {
-  //get the results from local storage
-  let localscore = localStorage.getItem("results");
-  let results = localscore ? JSON.parse(localscore) : [];
-
-  const obj = {
-    score: score.value,
-    subject: subject.value,
-    email: loginuser.value && loginuser.value.email,
-    user: loginuser.value,
-  };
-
-  //filter results and remove the current subject from it
-
-  results.find((el, index) => {
-    if (el.email == loginuser.value.email && el.subject == obj.subject) {
-      results.pop(index);
-      return;
-    }
-  });
-
-  console.log(results);
-
-  // add the new score to the result
-  results.push(obj);
-  //udpdate the local storage
-
-  localStorage.setItem("results", JSON.stringify(results));
-  return;
+const savedscore = async () => {
+  await store.addScore(data.value);
 };
 
-console.log(loginuser.value, loginuser.value.email);
 const moveToQuestion = (i) => {
   currentquest.value = i;
-  // console.log(currentquest.value);
 };
 </script>
